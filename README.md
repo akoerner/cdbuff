@@ -17,8 +17,9 @@ git clone https://github.com/akoerner/cdbuff.git
 ...
 source path/to/cdbuff/cdbuff
 ...
-```bash
+```
 3. Set the primary buffer:
+```bash
 cd to/some/interesting/path
 cdbuff -s
 ```
