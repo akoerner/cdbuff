@@ -9,7 +9,7 @@ buffers".
 ## Getting started
 1. clone the repo
 ```bash
-
+git clone https://github.com/akoerner/cdbuff.git
 ```
 
 2. in your bashrc or zshrc source cdbuff
