@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+    script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+    CDBUFF="${script_dir}/cdbuff.sh"
+    #echo "CDBUFF1: ${CDBUFF}"
+    if [[ ! -f "${CDBUFF}" ]]; then 
+        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        CDBUFF="${script_dir}/cdbuff.sh"
+        #echo "CDBUFF2: ${CDBUFF}"
+    fi
+    if [[ ! -f "${CDBUFF}" ]]; then 
+        script_dir="$(cd "$(dirname "$0")" && pwd)"
+        CDBUFF="${script_dir}/cdbuff.sh"
+        #echo "CDBUFF3: ${CDBUFF}"
+    fi
+    if [[ ! -f "${CDBUFF}" ]]; then 
+        echo "ERROR: Unable to resolve CDBUFF path." >&2
+        exit 1
+    fi
+else
+  echo "ERROR: script designed to be sourced." >&2
+  exit 1
+fi
+
+
+cdbuff(){
+    #echo "CDBUFF: ${CDBUFF}"
+    #set -x
+    output="$(bash "${CDBUFF}" $@)"
+    printf "${output}\n"
+    project_path="$(echo "$output" | tail -n 1)"
+    if [[ -d "${project_path}" ]]; then
+        cd "${project_path}"
+    fi
+}
