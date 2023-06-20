@@ -50,9 +50,9 @@ OPTIONS
     -h, --help             Print this help and exit
     -f, --buffer-file      CD buffer file to save path data. 
                              Default: "${DEFAULT_BUFFER_FILE}"
-    -b, --buffer           Buffer name or index
+    -b, --buffer           Buffer name or index (use: cdbuff -l to discover buffer indices)
     -d, --delete           Delete named buffer
-    -c, --cd               Change directory to project path
+    -c, --cd               Change directory to project path (if no other flags are provided this is implied and the default behavior)
     -p, --print            Print the buffer and exit 
     -v, --verbose          verbose output
 
@@ -60,10 +60,6 @@ OPTIONS
 EOF
     exit
 } 
-
-# set project
-# list projects
-# primary buffer
 
 list_buffers(){
     buffer_file="${1}"
