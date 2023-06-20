@@ -25,7 +25,7 @@ cdbuff -s
 ```
 
 ```bash
-cdbuff@latitude5501:~/this/is/an/interesting/path$ cdbuff -s
+cdbuff -s
 Setting cd buffer: (primary): /home/cdbuff/this/is/an/interesting/path
 ```
 
