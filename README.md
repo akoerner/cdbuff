@@ -31,9 +31,6 @@ Setting cd buffer: (primary): /home/cdbuff/this/is/an/interesting/path
 
 4. Later return to the primary buffer path:
 ```bash
-cdbuff
-```
-```bash
 pwd
 /home/cdbuff
 cdbuff
