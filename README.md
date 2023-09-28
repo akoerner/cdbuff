@@ -40,7 +40,6 @@ buffer by invoking `cdbuff` with no flags:
 cdbuff
 Changing directory to: primary@/home/cdbuff/to/some/interesting/path
 /home/cdbuff/to/some/interesting/path
-Setting cd buffer: (primary): /home/cdbuff/this/is/an/interesting/path
 ```
 
 #### List available buffers
@@ -63,6 +62,8 @@ You have two options to return to a previously named buffer. The first is to
 simply use the buffer name:
 ```bash
 cdbuff special_path
+Changing directory to: special_path@/home/cdbuff/some/path
+/home/cdbuff/some/path
 ```
 
 The second option is to use the buffer index:
@@ -84,7 +85,7 @@ Numerical buffers:
     0: /home/cdbuff/some/path
 
 Named buffers:
-   (fas): /home/cdbuff/some/path
+   (special_path): /home/cdbuff/some/path
 
     buffer file: /home/cdbuff/.cdbuff
 ```
@@ -102,10 +103,10 @@ Changing directory to: special_path@/home/cdbuff/some/path
 #### Deleting a named buffer
 Using the '-d' flag will delete a buffer.
 The following command will delete numerical buffer which in this
-example is index '1':
+example is index '0':
 ```bash
-cdbuff -d 1
-Deleted: 1@/home/cdbuff/some/path
+cdbuff -d 0
+Deleted: 0@/home/cdbuff/some/path
 ```
 You can also delete named buffers:
 ```bash
