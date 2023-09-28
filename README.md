@@ -67,7 +67,6 @@ Changing directory to: special_path@/home/cdbuff/some/path
 ```
 
 The second option is to use the buffer index:
-1.
 ```bash
 cdbuff -l
 ```
