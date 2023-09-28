@@ -83,7 +83,7 @@ Numerical buffers:
     1:
     0: /home/cdbuff/some/path
 
-Literal buffers:
+Named buffers:
    (fas): /home/cdbuff/some/path
 
     buffer file: /home/cdbuff/.cdbuff

@@ -95,7 +95,7 @@ list_buffers(){
         done <<< "$numerical_buffers"
     fi
     echo
-    echo $(bold "Literal buffers:")
+    echo $(bold "Named buffers:")
     if [[ -n "$literal_buffers" ]]; then
         while IFS= read -r buffer_line; do
             buffer=$(echo "$buffer_line" | cut -d '@' -f 1)
