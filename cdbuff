@@ -4,7 +4,7 @@
 if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
 
     script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}" 2> /dev/null || echo "")")
-    CDBUFF="${script_dir}/cdbuff.sh"
+    export CDBUFF="$(realpath "${script_dir}/cdbuff.sh")"
     #echo "CDBUFF1: ${CDBUFF}"
     if [[ ! -f "${CDBUFF}" ]]; then 
         script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
