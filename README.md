@@ -98,7 +98,7 @@ Named register:
 2. Once you know the index you can always use it to refer to the register:
 ```bash
 cb 0 
-Changing directory to: special_path@/home/cdbuff/some/path
+Changing directory to: 0/home/cdbuff/some/path
 /home/cdbuff/some/path
 ```
 
