@@ -9,12 +9,11 @@ cdbuff is meant to be used interactively to quickly change your working
 directory to and from frequently used directories.
 
 ## Named Registers
-With cdbuff you can save and restore paths to registers by assigning arbitrary 
-names to them.
+With cdbuff you can save and restore paths to registers by assigning arbitrary names to them.
 
 ## Rolling Indexed Registers
-cdbuff has a circular registers indexed registers [0-9] similar to vim.  Every 
-path stored with '-s' will pushed into the indexed registers with the most 
+cdbuff has a circular buffer with indexed registers [0-9] similar to vim.  Every 
+path stored with '-s' will pushed into the indexed registers buffer with the most 
 recent being assigned to register `0`. The previous path that was stored in 
 register `0` will be pushed to register `1` and so on.
 
@@ -32,14 +31,14 @@ alias cb=cdbuff
 3. Set the primary register:
 ```bash
 cd to/some/interesting/path
-cdbuff -s
+cb -s
 Setting cd register: (primary): /home/cdbuff/to/some/interesting/path
 ```
 
 Later you can recall and change back to that directory stored in the `primary`
 register by invoking `cdbuff` with no flags: 
 ```bash
-cdbuff
+cb
 Changing directory to: primary@/home/cdbuff/to/some/interesting/path
 /home/cdbuff/to/some/interesting/path
 Setting cd register: (primary): /home/cdbuff/this/is/an/interesting/path
@@ -48,7 +47,7 @@ Setting cd register: (primary): /home/cdbuff/this/is/an/interesting/path
 #### List available registers
 The following command will return a list of all defined cdbuff registers:
 ```bash
-cdbuff -l
+cb -l
 ```
 
 #### Setting a named register
@@ -56,7 +55,7 @@ cdbuff -l
 2. invoke cdbuff with `-s`:
 ```bash
 cd some/path
-cdbuff -s special_path
+cb -s special_path
 Setting cd register: (special_path): /home/cdbuff/some/path
 ```
 
@@ -64,7 +63,7 @@ Setting cd register: (special_path): /home/cdbuff/some/path
 You have two options to return to a previously named register. The first is to 
 simply use the register name:
 ```bash
-cdbuff special_path
+cb special_path
 Changing directory to: special_path@/home/cdbuff/some/path
 /home/cdbuff/some/path
 ```
@@ -72,7 +71,7 @@ Changing directory to: special_path@/home/cdbuff/some/path
 The second option is to use the register index:
 1.
 ```bash
-cdbuff -l
+cb -l
 ```
 ```bash
 Numerical register:
@@ -94,11 +93,11 @@ Named register:
 ```
 
 > **ℹ️INFO:**
-> The register index will automatically advance with each invocation of `cdbuff -s`
+> The register index will automatically advance with each invocation of `cb -s`
 
 2. Once you know the index you can always use it to refer to the register:
 ```bash
-cdbuff 0 
+cb 0 
 Changing directory to: special_path@/home/cdbuff/some/path
 /home/cdbuff/some/path
 ```
@@ -107,14 +106,14 @@ Changing directory to: special_path@/home/cdbuff/some/path
 Using the '-d' flag will delete a register.
 The following command will delete numerical register #0:
 ```bash
-cdbuff -d 0
+cb -d 0
 Deleted: 0@/home/cdbuff/some/path
 ```
 You can also delete named register:
 ```bash
-cdbuff -d special_path 
+cb -d special_path 
 Deleted: special_path@/home/cdbuff/some/path
 ```
 
 #### cdbuff register file
-The cdbuff register file is $HOME/.cdbuff by default
+The cdbuff register file is: `$home/.cdbuff` by default
