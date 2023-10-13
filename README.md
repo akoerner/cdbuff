@@ -65,6 +65,8 @@ You have two options to return to a previously named register. The first is to
 simply use the register name:
 ```bash
 cdbuff special_path
+Changing directory to: special_path@/home/cdbuff/some/path
+/home/cdbuff/some/path
 ```
 
 The second option is to use the register index:
@@ -86,7 +88,7 @@ Numerical register:
     0: /home/cdbuff/some/path
 
 Named register:
-   (fas): /home/cdbuff/some/path
+   (special_path): /home/cdbuff/some/path
 
     register file: /home/cdbuff/.cdbuff
 ```
@@ -103,10 +105,10 @@ Changing directory to: special_path@/home/cdbuff/some/path
 
 #### Deleting a named register
 Using the '-d' flag will delete a register.
-The following command will delete numerical register #1:
+The following command will delete numerical register #0:
 ```bash
-cdbuff -d 1
-Deleted: 1@/home/cdbuff/some/path
+cdbuff -d 0
+Deleted: 0@/home/cdbuff/some/path
 ```
 You can also delete named register:
 ```bash
