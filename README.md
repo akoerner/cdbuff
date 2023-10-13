@@ -8,13 +8,15 @@ recall paths by name or index.
 cdbuff is meant to be used interactively to quickly change your working
 directory to and from frequently used directories.
 
-## Named Buffers
-With cdbuff you can save and restore paths by assigning arbitrary names to them.
+## Named Registers
+With cdbuff you can save and restore paths to registers by assigning arbitrary 
+names to them.
 
-## Rolling Indexed Buffers
-cdbuff has a circular buffer similar to vim.  Every path stored with '-s' will
-appear in the indexed buffers. With each new path the index of the previous is 
-incremented.
+## Rolling Indexed Registers
+cdbuff has a circular registers indexed registers [0-9] similar to vim.  Every 
+path stored with '-s' will pushed into the indexed registers with the most 
+recent being assigned to register `0`. The previous path that was stored in 
+register `0` will be pushed to register `1` and so on.
 
 ## Getting started
 1. clone the repo
@@ -27,51 +29,51 @@ git clone https://github.com/akoerner/cdbuff.git
 source path/to/cdbuff/cdbuff
 alias cb=cdbuff
 ```
-3. Set the primary buffer:
+3. Set the primary register:
 ```bash
 cd to/some/interesting/path
 cdbuff -s
-Setting cd buffer: (primary): /home/cdbuff/to/some/interesting/path
+Setting cd register: (primary): /home/cdbuff/to/some/interesting/path
 ```
 
 Later you can recall and change back to that directory stored in the `primary`
-buffer by invoking `cdbuff` with no flags: 
+register by invoking `cdbuff` with no flags: 
 ```bash
 cdbuff
 Changing directory to: primary@/home/cdbuff/to/some/interesting/path
 /home/cdbuff/to/some/interesting/path
-Setting cd buffer: (primary): /home/cdbuff/this/is/an/interesting/path
+Setting cd register: (primary): /home/cdbuff/this/is/an/interesting/path
 ```
 
-#### List available buffers
-The following command will return a list of all defined cdbuff buffers:
+#### List available registers
+The following command will return a list of all defined cdbuff registers:
 ```bash
 cdbuff -l
 ```
 
-#### Setting a named cd buffer
+#### Setting a named register
 1. cd to a path you want to store
 2. invoke cdbuff with `-s`:
 ```bash
 cd some/path
 cdbuff -s special_path
-Setting cd buffer: (special_path): /home/cdbuff/some/path
+Setting cd register: (special_path): /home/cdbuff/some/path
 ```
 
-#### Returning to a named buffer
-You have two options to return to a previously named buffer. The first is to 
-simply use the buffer name:
+#### Returning to a named register
+You have two options to return to a previously named register. The first is to 
+simply use the register name:
 ```bash
 cdbuff special_path
 ```
 
-The second option is to use the buffer index:
+The second option is to use the register index:
 1.
 ```bash
 cdbuff -l
 ```
 ```bash
-Numerical buffers:
+Numerical register:
     9:
     8:
     7:
@@ -83,35 +85,34 @@ Numerical buffers:
     1:
     0: /home/cdbuff/some/path
 
-Named buffers:
+Named register:
    (fas): /home/cdbuff/some/path
 
-    buffer file: /home/cdbuff/.cdbuff
+    register file: /home/cdbuff/.cdbuff
 ```
 
 > **ℹ️INFO:**
-> The buffer index will automatically advance with each invocation of `cdbuff -s`
+> The register index will automatically advance with each invocation of `cdbuff -s`
 
-2. Once you know the index you can always use it to refer to the buffer:
+2. Once you know the index you can always use it to refer to the register:
 ```bash
 cdbuff 0 
 Changing directory to: special_path@/home/cdbuff/some/path
 /home/cdbuff/some/path
 ```
 
-#### Deleting a named buffer
-Using the '-d' flag will delete a buffer.
-The following command will delete numerical buffer which in this
-example is index '1':
+#### Deleting a named register
+Using the '-d' flag will delete a register.
+The following command will delete numerical register #1:
 ```bash
 cdbuff -d 1
 Deleted: 1@/home/cdbuff/some/path
 ```
-You can also delete named buffers:
+You can also delete named register:
 ```bash
 cdbuff -d special_path 
 Deleted: special_path@/home/cdbuff/some/path
 ```
 
-#### cdbuff buffer file
-The cdbuff buffer file is $HOME/.cdbuff by default
+#### cdbuff register file
+The cdbuff register file is $HOME/.cdbuff by default
