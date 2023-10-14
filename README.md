@@ -41,7 +41,6 @@ register by invoking `cdbuff` with no flags:
 cb
 Changing directory to: primary@/home/cdbuff/to/some/interesting/path
 /home/cdbuff/to/some/interesting/path
-Setting cd register: (primary): /home/cdbuff/this/is/an/interesting/path
 ```
 
 #### List available registers
