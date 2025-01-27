@@ -9,10 +9,11 @@ cdbuff is intended for interactive use, enabling you to quickly switch between f
 With `cdbuff` you can save and restore paths to registers by assigning arbitrary names to them.
 
 ## Rolling Indexed Registers
-`cdbuff` has a circular buffer with indexed registers [0-9] similar to vim.  Every 
-path stored with '-s' will pushed into the indexed registers buffer with the most 
-recent being assigned to register `0`. The previous path that was stored in 
-register `0` will be pushed to register `1` and so on.
+`cdbuff` features a circular buffer/register system with indexed registers [0-9], similar to Vim.
+Every path stored using the `-s` option is pushed into the indexed registers, with the most recent
+path assigned to register `0`. The previous path in register `0` is then shifted to register `1`, 
+and so on, with older paths cascading through the remaining registers.
+
 
 ## Getting started
 1. clone the repo
