@@ -1,15 +1,15 @@
 # Your Grandpa's `cd` Command
 
-cdbuff is a simple command-line tool designed to enhance the functionality of the `cd` command in Bash. It is particularly useful if you work on multiple projects, allowing you to store and recall paths by name or index.
+`cdbuff` is a simple command-line tool designed to enhance the functionality of the `cd` command in Bash. It is particularly useful if you work on multiple projects, allowing you to store and recall paths by name or index.
 
 cdbuff is intended for interactive use, enabling you to quickly switch between frequently used directories.
 
 
 ## Named Registers
-With cdbuff you can save and restore paths to registers by assigning arbitrary names to them.
+With `cdbuff` you can save and restore paths to registers by assigning arbitrary names to them.
 
 ## Rolling Indexed Registers
-cdbuff has a circular buffer with indexed registers [0-9] similar to vim.  Every 
+`cdbuff` has a circular buffer with indexed registers [0-9] similar to vim.  Every 
 path stored with '-s' will pushed into the indexed registers buffer with the most 
 recent being assigned to register `0`. The previous path that was stored in 
 register `0` will be pushed to register `1` and so on.
