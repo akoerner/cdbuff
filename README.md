@@ -1,12 +1,9 @@
-# cdbuff
-Your grandpa's cd command
+# Your Grandpa's `cd` Command
 
-cdbuff is a simple command line tool to enhance the 'cd' command written in 
-bash. It can be useful if you have multiple projects allowing you to store or 
-recall paths by name or index. 
+cdbuff is a simple command-line tool designed to enhance the functionality of the `cd` command in Bash. It is particularly useful if you work on multiple projects, allowing you to store and recall paths by name or index.
 
-cdbuff is meant to be used interactively to quickly change your working
-directory to and from frequently used directories.
+cdbuff is intended for interactive use, enabling you to quickly switch between frequently used directories.
+
 
 ## Named Registers
 With cdbuff you can save and restore paths to registers by assigning arbitrary names to them.
