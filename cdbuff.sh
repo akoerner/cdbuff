@@ -48,7 +48,6 @@ DESCRIPTION
     - cd'ing to named and indexed registers
     - list available registers
     - managing named registers i.e., deleting them
-    - 
 
 OPTIONS
 
