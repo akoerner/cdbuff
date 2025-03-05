@@ -25,14 +25,69 @@ else
   exit 1
 fi
 
+_cdbuff_complete() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    
+    local register_file="${HOME}/.cdbuff"
+    if [[ ! -f "${register_file}" ]]; then
+        return 0
+    fi
+    
+    if [[ ${prev} == "-d" || ${prev} == "--delete" ]]; then
+        #local reg_names=$(cat "${register_file}" | cut -d '@' -f 1)
+        local reg_names=$(cat "${register_file}")
+        COMPREPLY=( $(compgen -W "${reg_names}" -- ${cur}) )
+        return 0
+    fi
+    
+    if [[ ${cur} == -* ]]; then
+        opts="-h --help -f --register-file -l --list-registers -s --set-register -c --cd -d --delete -D --dump -n --nuke -p --print -v --verbose"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
+    
+    if [[ ${COMP_CWORD} -eq 1 ]]; then
+        #local reg_names=$(grep -v "^[0-9]@" "${register_file}" | cut -d '@' -f 1)
+        local reg_names=$(grep -v "^[0-9]@" "${register_file}")
+        
+        if [[ -n "$COMP_TAB_COUNT" && "$COMP_TAB_COUNT" -gt 1 ]]; then
+            echo
+            grep -v "^[0-9]@" "${register_file}" | grep "^$cur"
+            echo
+            unset COMP_TAB_COUNT
+        else
+            export COMP_TAB_COUNT=$((${COMP_TAB_COUNT:-0} + 1))
+        fi
+        
+        COMPREPLY=( $(compgen -W "${reg_names}" -- ${cur}) )
+        return 0
+    fi
+}
+
+complete -F _cdbuff_complete cdbuff
+complete -F _cdbuff_complete cb
 
 cdbuff(){
-    #echo "CDBUFF: ${CDBUFF}"
-    #set -x
+    # Set environment variable if running interactively
+    if [[ -t 1 && -t 0 ]]; then
+        export CDBUFF_INTERACTIVE=1
+    else
+        export CDBUFF_INTERACTIVE=
+    fi
+    
     output="$(bash "${CDBUFF}" $@)"
     printf "${output}\n"
     project_path="$(echo "$output" | tail -n 1)"
     if [[ -d "${project_path}" ]]; then
         cd "${project_path}"
     fi
+    
+    # Clean up
+    unset CDBUFF_INTERACTIVE
 }
+
+alias cb=cdbuff
+

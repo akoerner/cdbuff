@@ -273,28 +273,65 @@ trim_string() {
   echo "$trimmed_string"
 }
 
+FORCE_COLOR="${CDBUFF_FORCE_COLOR:-}"
+NO_COLOR="${NO_COLOR:-}"
+
+USE_COLORS=0
+if [[ -n "$FORCE_COLOR" ]]; then
+    USE_COLORS=1
+elif [[ -n "$NO_COLOR" ]]; then
+    USE_COLORS=0
+else
+    if [[ -n "${CDBUFF_INTERACTIVE:-}" ]]; then
+        USE_COLORS=1
+    fi
+fi
+
 bold() {
-    printf "\033[1m%s\033[0m" "$1"
+    if [[ $USE_COLORS -eq 1 ]]; then
+        printf "\033[1m%s\033[0m" "$1"
+    else
+        printf "%s" "$1"
+    fi
 }
 
 red() {
-    printf "\033[1;31m%s\033[0m" "$1"
+    if [[ $USE_COLORS -eq 1 ]]; then
+        printf "\033[1;31m%s\033[0m" "$1"
+    else
+        printf "%s" "$1"
+    fi
 }
 
 green() {
-    printf "\033[1;32m%s\033[0m" "$1"
+    if [[ $USE_COLORS -eq 1 ]]; then
+        printf "\033[1;32m%s\033[0m" "$1"
+    else
+        printf "%s" "$1"
+    fi
 }
 
-emphasis () {
+emphasis() {
     local string="${1}"
     local color="${2}"
-    eval "$color $(bold "${string}")"
-} 
-
-
+    if [[ $USE_COLORS -eq 1 ]]; then
+        eval "$color $(bold "${string}")"
+    else
+        printf "%s" "${string}"
+    fi
+}
 
 register_file=
 register=
+
+strip_register_path() {
+    local input="$1"
+    if [[ "$input" == *"@"* ]]; then
+        echo "$input" | cut -d '@' -f 1
+    else
+        echo "$input"
+    fi
+}
 
 parse_params() {
   register="${DEFAULT_REGISTER}"
@@ -308,7 +345,7 @@ parse_params() {
   print=0
 
   if [ $# -eq 1 ] && [[ "${1:0:1}" != "-" ]]; then
-    register=$1
+    register=$(strip_register_path "$1")
     _cd=1
   fi
   
@@ -321,7 +358,7 @@ parse_params() {
     case "${1-}" in
     -h | --help) echo "$(_help)" | less ;;
     -v | --verbose) set -x ;;
-    -f | --register-file) # example named parameter
+    -f | --register-file)
       register_file="${2-}"
       shift
       ;;
@@ -329,7 +366,7 @@ parse_params() {
     -s | --set-register) 
       set_register=1
       if [[ $# -gt 1 && ! "$2" == -* ]]; then
-        register="$2"
+        register=$(strip_register_path "$2")
         shift
       else
         register="${DEFAULT_REGISTER}"  # No value provided for "register"
@@ -338,7 +375,7 @@ parse_params() {
     -c | --cd) _cd=1;;
     -d | --delete) 
       delete=1
-      register="${2-}"
+      register=$(strip_register_path "${2-}")
       shift
       ;;
     -D | --dump) dump=1;;
