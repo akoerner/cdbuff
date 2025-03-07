@@ -5,16 +5,13 @@ if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
 
     script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}" 2> /dev/null || echo "")")
     export CDBUFF="$(realpath "${script_dir}/cdbuff.sh")"
-    #echo "CDBUFF1: ${CDBUFF}"
     if [[ ! -f "${CDBUFF}" ]]; then 
         script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         CDBUFF="${script_dir}/cdbuff.sh"
-        #echo "CDBUFF2: ${CDBUFF}"
     fi
     if [[ ! -f "${CDBUFF}" ]]; then 
         script_dir="$(cd "$(dirname "$0")" && pwd)"
         CDBUFF="${script_dir}/cdbuff.sh"
-        #echo "CDBUFF3: ${CDBUFF}"
     fi
     if [[ ! -f "${CDBUFF}" ]]; then 
         echo "ERROR: Unable to resolve CDBUFF path." >&2
@@ -71,7 +68,6 @@ complete -F _cdbuff_complete cdbuff
 complete -F _cdbuff_complete cb
 
 cdbuff(){
-    # Set environment variable if running interactively
     if [[ -t 1 && -t 0 ]]; then
         export CDBUFF_INTERACTIVE=1
     else
@@ -85,7 +81,6 @@ cdbuff(){
         cd "${project_path}"
     fi
     
-    # Clean up
     unset CDBUFF_INTERACTIVE
 }
 

@@ -6,7 +6,6 @@ trap cleanup SIGINT SIGTERM ERR EXIT
 
 cleanup() {
   trap - SIGINT SIGTERM ERR EXIT
-  # script cleanup here
 }
 
 echoerr (){ printf "$@" >&2;}
@@ -36,11 +35,12 @@ SYNOPSIS
     cdbuff test           Change directory to the path stored with the 'test' register
     cdbuff -s test        Create a new named register called 'test' and save the current working directory 
     cdbuff -d primary     Delete the primary register
-    cdbuff -d 3           Delete register at index 3, to list indexes use the -l flag
+    cdbuff -d 3           Delete register at index 3
     cdbuff -l             List all defined registers with access counts and last access time
     cdbuff -p             Print the primary register and exit
     cdbuff -t <register>  Show statistics for a specific register 
-    cdbuff -P             Prune all dead registers (paths that no longer exist)
+    cdbuff -P             Prune all dead registers (registers with paths that no longer exist)
+    cb 7                  cd to directory in indexed register 7
 
 DESCRIPTION
     'cdbuff' or 'cb' is an enhancement to the 'cd' command adding named registers and a 
@@ -52,20 +52,20 @@ DESCRIPTION
     - cd'ing to named and indexed registers
     - list available registers
     - managing named registers i.e., deleting them
-    - tracking access history with timestamps
+    - tracking access history with a cdbuff hist file: ${DEFAULT_HISTORY_FILE}
     - viewing register statistics
 
 OPTIONS
 
     -h, --help             Print this help and exit
-    -f, --register-file    CD register register file to save path data. 
-                           Default: "${DEFAULT_REGISTER_FILE}"
+    -f, --register-file    cdbuff register file 
+                             Default: "${DEFAULT_REGISTER_FILE}"
     -d, --delete           Delete named register
     -p, --print            Print the `primary` register and exit 
     -n, --nuke             Delete all registers in the register file 
     -D, --dump             cat the register file 
     -v, --verbose          verbose output
-    -t, --stats            Show access statistics for a specified register
+    -S, --stats            Show access statistics for a specified register
     -P, --prune-dead       Delete all dead registers (paths that no longer exist)
 
     The default register is always "${DEFAULT_REGISTER}" unless specified 
@@ -138,7 +138,6 @@ check_path_exists() {
     return 0
 }
 
-
 get_dead_register_count() {
     local register_file="${1:-${DEFAULT_REGISTER_FILE}}"
     local dead_register_count=0
@@ -170,7 +169,6 @@ prune_dead_registers() {
     local register_file="$1"
     local history_file="$2"
     
-    # First check for dead registers
     local dead_register_count="$(get_dead_register_count "$register_file")"
     
     if [ "${dead_register_count}" -eq 0 ]; then
@@ -178,80 +176,42 @@ prune_dead_registers() {
         return
     fi
     
-    # Print the dead registers with forced flush
-    {
         echo $(bold "Dead registers:")
-        while IFS= read -r line; do
-            if [[ -z "$line" ]]; then
-                continue
-            fi
+
+        named_registers="$(cat "${register_file}" | sed -n '/^[0-9]@/!p')"
+        
+        if [[ -n "$named_registers" ]]; then
+            while IFS= read -r register_line; do
+                register=$(echo "$register_line" | cut -d '@' -f 1)
+                path=$(echo "$register_line" | cut -d '@' -f 2-)
             
-            register=$(echo "$line" | cut -d '@' -f 1)
-            path=$(echo "$line" | cut -d '@' -f 2-)
-            
-            if [[ "$register" =~ ^[0-9]+$ ]]; then
-                continue
-            fi
-            
-            if ! check_path_exists "$path"; then
-                echo "    $(emphasis "${register}" "red")@${path}"
-            fi
-        done < "$register_file"
-        echo
-    } > /dev/tty
+                if ! check_path_exists "$path"; then
+                    echo " $(emphasis "DEAD PATH" "red")"
+                fi
+            done <<< "$named_registers"
+        fi 
+
     
-    # Force a flush of all output buffers
-    exec >/dev/tty
-    exec 2>/dev/tty
-    
-    # Now ask for confirmation
-    read -p "Do you want to delete these dead registers? (y/n): " choice
-    
-    case "$choice" in
-        [Yy]* ) 
-            # Continue with pruning
-            ;;
-        * ) 
-            echo "Pruning canceled."
-            return
-            ;;
-    esac
+    if ! confirm; then
+        return
+    fi
     
     echo "Pruning dead registers..."
-    local tmp_file=$(mktemp)
-    local pruned_count=0
-    
-    # Process each line in the register file for actual pruning
-    while IFS= read -r line; do
-        if [[ -z "$line" ]]; then
-            continue
-        fi
+
+    if [[ -n "$named_registers" ]]; then
+        while IFS= read -r register_line; do
+            register=$(echo "$register_line" | cut -d '@' -f 1)
+            path=$(echo "$register_line" | cut -d '@' -f 2-)
         
-        register=$(echo "$line" | cut -d '@' -f 1)
-        path=$(echo "$line" | cut -d '@' -f 2-)
-        
-        # Always keep numerical registers
-        if [[ "$register" =~ ^[0-9]+$ ]]; then
-            echo "$line" >> "$tmp_file"
-            continue
-        fi
-        
-        if check_path_exists "$path"; then
-            # Path exists, keep the register
-            echo "$line" >> "$tmp_file"
-        else
-            # Path doesn't exist, prune it
-            echo "$(emphasis "Pruned:" "red") ${register}@${path}"
-            ((pruned_count++))
-        fi
-    done < "$register_file"
-    
-    # Replace original file with cleaned version
-    mv "$tmp_file" "$register_file"
-    
+            if ! check_path_exists "$path"; then
+               delete_register "${register}" "${register_file}"
+                echo "$(emphasis "Pruned:" "red") ${register}@${path}"
+            fi
+        done <<< "$named_registers"
+    fi 
+
     echo "Pruning complete. Removed $pruned_count dead registers."
     
-    # Make sure we still have numerical registers
     numerical_registers_init "${register_file}"
 }
 
@@ -273,7 +233,6 @@ list_registers(){
         fi
     }
     
-    # Temporary files for sorting
     local tmp_active=$(mktemp)
     local tmp_dead=$(mktemp)
     
@@ -298,22 +257,23 @@ list_registers(){
             fi
         done <<< "$numerical_registers"
         
-        # Sort active entries by count (descending) and display
-        if [[ -s "$tmp_active" ]]; then
-            sort -rn "$tmp_active" | cut -d '|' -f 2- | while IFS= read -r line; do
-                printf "%b\n" "$line"
-            done
-        fi
+        #if [[ -s "$tmp_active" ]]; then
+        #    sort -rn "$tmp_active" | cut -d '|' -f 2- | while IFS= read -r line; do
+        #        printf "%b\n" "$line"
+        #    done
+        #fi
         
-        # Display dead entries (also sorted by count)
-        if [[ -s "$tmp_dead" ]]; then
-            sort -rn "$tmp_dead" | cut -d '|' -f 2- | while IFS= read -r line; do
-                printf "%b\n" "$line"
-            done
-        fi
+        #if [[ -s "$tmp_dead" ]]; then
+        #    sort -rn "$tmp_dead" | cut -d '|' -f 2- | while IFS= read -r line; do
+        #        printf "%b\n" "$line"
+        #    done
+        #fi
+         
+        while IFS= read -r line; do
+            printf "  %b\n" "$line"
+        done <<< "$numerical_registers"
     fi
     
-    # Clean temp files
     rm -f "$tmp_active" "$tmp_dead"
     tmp_active=$(mktemp)
     tmp_dead=$(mktemp)
@@ -328,8 +288,8 @@ list_registers(){
             count=$(get_access_count "$register" "$path" "$history_file")
             padded_last_access=$(pad_never "$(get_last_access "$register" "$path" "$history_file")")
             
-            output_line="    ($(emphasis ${register} "green")): ${path}\n"
-            output_line+="        (access count: ${count}) (last accessed: ${padded_last_access})"
+            output_line="  ($(emphasis ${register} "green")): ${path}\n"
+            output_line+="    (access count: ${count}) (last accessed: ${padded_last_access})"
             
             if ! check_path_exists "$path"; then
                 output_line+=" $(emphasis "DEAD PATH" "red")"
@@ -340,14 +300,12 @@ list_registers(){
             fi
         done <<< "$literal_registers"
         
-        # Sort active entries by count (descending) and display
         if [[ -s "$tmp_active" ]]; then
             sort -rn "$tmp_active" | cut -d '|' -f 2- | while IFS= read -r line; do
                 printf "%b\n" "$line"
             done
         fi
         
-        # Display dead entries (also sorted by count)
         if [[ -s "$tmp_dead" ]]; then
             sort -rn "$tmp_dead" | cut -d '|' -f 2- | while IFS= read -r line; do
                 printf "%b\n" "$line"
@@ -357,7 +315,6 @@ list_registers(){
         echo "$(bold "INFO:") No named registers in register file: ${register_file}. Call 'cdbuff -s' to set a named register."
     fi
     
-    # Clean temp files
     rm -f "$tmp_active" "$tmp_dead"
     
     printf "\n"
@@ -485,7 +442,6 @@ cd_register(){
     
     echo "Changing directory to: $(emphasis "${register}" "green")@${register_path}"
     
-    # Log the access to history file
     log_access "${register}" "${register_path}" "${history_file}"
     
     echo "${register_path}"
@@ -512,7 +468,7 @@ register_print(){
     fi
     register="$(echo "${register_line}" | cut -d "@" -f1)"
     register_path="$(echo "${register_line}" | cut -d "@" -f2)"
-    echo "Buffer: $(emphasis "${register}" "green")@${register_path}"
+    echo "Register: $(emphasis "${register}" "green")@${register_path}"
     
     if ! check_path_exists "$register_path"; then
         echo "$(emphasis "WARNING:" "red") Path no longer exists!"
@@ -553,7 +509,7 @@ cd_register_sort(){
     printf "${register_line}\n${register_list}" > "${register_file}"
 }
 
-cd_register_delete(){
+delete_register(){
     register="${1}"
     register_file="${2}"
  
@@ -636,6 +592,11 @@ history_file=
 
 strip_register_path() {
     local input="$1"
+
+    if [[ -z "${input}" ]]; then
+        exiterr "    ERROR: No register name provide, provide a register name and try again."
+    fi
+
     if [[ "$input" == *"@"* ]]; then
         echo "$input" | cut -d '@' -f 1
     else
@@ -682,7 +643,7 @@ parse_params() {
         register=$(strip_register_path "$2")
         shift
       else
-        register="${DEFAULT_REGISTER}"  # No value provided for "register"
+        register="${DEFAULT_REGISTER}"
       fi
       ;;
     -c | --cd) _cd=1;;
@@ -695,7 +656,7 @@ parse_params() {
     -n | --nuke) nuke=1;;
     -p | --print) print=1;;
     -P | --prune-dead) prune_dead=1;;
-    -t | --stats)
+    -S | --stats)
       stats=1
       register=$(strip_register_path "${2-}")
       shift
@@ -712,7 +673,6 @@ parse_params() {
 
     touch ${register_file}
     touch ${history_file}
-
 
     
     if [[ "${nuke}" -eq 1 ]]; then
@@ -759,7 +719,7 @@ parse_params() {
     fi
 
     if [[ "${delete}" -eq 1 ]]; then
-        cd_register_delete "${register}" "${register_file}"
+        delete_register "${register}" "${register_file}"
         cd_register_sort "${register_file}"
     fi
 
