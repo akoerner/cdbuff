@@ -61,7 +61,7 @@ OPTIONS
     -f, --register-file    CD register register file to save path data. 
                            Default: "${DEFAULT_REGISTER_FILE}"
     -d, --delete           Delete named register
-    -p, --print            Print the `primary` register and exit 
+    -p, --print            Print the \`primary\` register and exit 
     -n, --nuke             Delete all registers in the register file 
     -D, --dump             cat the register file 
     -v, --verbose          verbose output
@@ -170,7 +170,6 @@ prune_dead_registers() {
     local register_file="$1"
     local history_file="$2"
     
-    # First check for dead registers
     local dead_register_count="$(get_dead_register_count "$register_file")"
     
     if [ "${dead_register_count}" -eq 0 ]; then
@@ -178,7 +177,6 @@ prune_dead_registers() {
         return
     fi
     
-    # Print the dead registers with forced flush
     {
         echo $(bold "Dead registers:")
         while IFS= read -r line; do
@@ -200,11 +198,9 @@ prune_dead_registers() {
         echo
     } > /dev/tty
     
-    # Force a flush of all output buffers
     exec >/dev/tty
     exec 2>/dev/tty
     
-    # Now ask for confirmation
     read -p "Do you want to delete these dead registers? (y/n): " choice
     
     case "$choice" in
