@@ -113,7 +113,17 @@ _cdbuff_complete_zsh() {
     _arguments -s "${opts[@]}"
 }
 
-compdef _cdbuff_complete_zsh cdbuff cb
+# ── Defer compdef until after compinit ────────────────────────────────────────
+# compdef called at plugin load time fires before compinit in most plugin
+# managers and standalone sourcing. Register via precmd and self-remove.
+
+_cdbuff_init_completion() {
+    compdef _cdbuff_complete_zsh cdbuff cb
+    add-zsh-hook -d precmd _cdbuff_init_completion
+    unfunction _cdbuff_init_completion
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _cdbuff_init_completion
 
 # ── Tab on empty prompt opens cb completions ───────────────────────────────────
 
