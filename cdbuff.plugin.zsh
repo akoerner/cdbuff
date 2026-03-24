@@ -19,7 +19,8 @@ _cdbuff_complete_zsh() {
     local history_file="${XDG_CONFIG_HOME:-${HOME}}/.cdbuff/history"
 
     _cdbuff_register_completions() {
-        if [[ ! -f "${register_file}" ]]; then
+        if [[ ! -f "${register_file}" ]] || ! grep -qv "^[0-9]@" "${register_file}" 2>/dev/null; then
+            compadd -x $'%F{yellow}No registers set%f\n  Set the primary register:  cb -s\n  Set a named register:      cb -s <n>\n  Help:                      cb -h'
             return
         fi
 
@@ -113,29 +114,31 @@ _cdbuff_complete_zsh() {
     _arguments -s "${opts[@]}"
 }
 
-# ── Defer compdef until after compinit ────────────────────────────────────────
-# compdef called at plugin load time fires before compinit in most plugin
-# managers and standalone sourcing. Register via precmd and self-remove.
-
-_cdbuff_init_completion() {
-    compdef _cdbuff_complete_zsh cdbuff cb
-    add-zsh-hook -d precmd _cdbuff_init_completion
-    unfunction _cdbuff_init_completion
-}
-autoload -Uz add-zsh-hook
-add-zsh-hook precmd _cdbuff_init_completion
-
 # ── Tab on empty prompt opens cb completions ───────────────────────────────────
 
 _cdbuff_tab_or_complete() {
     if [[ -z "${BUFFER}" ]]; then
         BUFFER="cb "
         CURSOR=${#BUFFER}
+        zle menu-complete
+    else
+        zle expand-or-complete
     fi
-    zle expand-or-complete
 }
 zle -N _cdbuff_tab_or_complete
-bindkey "^I" _cdbuff_tab_or_complete
+
+# ── Defer compdef and bindkey until after all plugins have loaded ──────────────
+# Plugins listed after cdbuff (e.g. zsh-autosuggestions) overwrite ^I at load
+# time. Running in precmd guarantees we apply last.
+
+_cdbuff_init() {
+    compdef _cdbuff_complete_zsh cdbuff cb
+    bindkey "^I" _cdbuff_tab_or_complete
+    add-zsh-hook -d precmd _cdbuff_init
+    unfunction _cdbuff_init
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _cdbuff_init
 
 # ── cdbuff function ────────────────────────────────────────────────────────────
 

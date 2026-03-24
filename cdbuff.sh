@@ -377,7 +377,7 @@ show_register_stats() {
     
     register_line="$(grep -E "^${register}@" "${register_file}" || echo "")"
     if [[ -z "$register_line" ]]; then
-        exiterr "ERROR: no register set for register: ${register} found in: ${register_file}"
+        exiterr "ERROR: no register set for register: ${register} found in: ${register_file}\n\n  Set the primary register:  cb -s\n  Set a named register:      cb -s <name>\n  Help:                      cb -h\n"
     fi
     
     local register_path="$(echo "${register_line}" | cut -d "@" -f2)"
@@ -475,7 +475,7 @@ cd_register(){
     register_line="$(grep -E "^${register}@" "${register_file}" || echo "")"
 
     if [[ -z "$register_line" ]]; then
-        exiterr "ERROR: no register set for register: ${register} found in: ${register_file}"
+        exiterr "ERROR: no register set for register: ${register} found in: ${register_file}\n\n  Set the primary register:  cb -s\n  Set a named register:      cb -s <name>\n  Help:                      cb -h\n"
     fi
     register="$(echo "${register_line}" | cut -d "@" -f1)"
     register_path="$(echo "${register_line}" | cut -d "@" -f2)"
@@ -509,7 +509,7 @@ register_print(){
     fi
 
     if [[ -z "$register_line" ]]; then
-        exiterr "ERROR: no register set for register: ${register} found in: ${register_file}"
+        exiterr "ERROR: no register set for register: ${register} found in: ${register_file}\n\n  Set the primary register:  cb -s\n  Set a named register:      cb -s <name>\n  Help:                      cb -h\n"
     fi
     register="$(echo "${register_line}" | cut -d "@" -f1)"
     register_path="$(echo "${register_line}" | cut -d "@" -f2)"
