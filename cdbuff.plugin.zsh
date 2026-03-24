@@ -131,10 +131,8 @@ _cdbuff_tab_or_complete() {
     if [[ -z "${BUFFER}" ]]; then
         BUFFER="cb "
         CURSOR=${#BUFFER}
-        zle complete-word
-    else
-        zle expand-or-complete
     fi
+    zle expand-or-complete
 }
 zle -N _cdbuff_tab_or_complete
 bindkey "^I" _cdbuff_tab_or_complete
