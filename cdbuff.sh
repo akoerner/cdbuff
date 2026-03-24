@@ -15,8 +15,9 @@ exiterr (){ echoerr "$@\n"; exit 1;}
 SCRIPT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 DEFAULT_REGISTER="primary"
-DEFAULT_REGISTER_FILE="${HOME}/.cdbuff"
-DEFAULT_HISTORY_FILE="${HOME}/.cdbuff_history"
+CDBUFF_CONFIG_DIR="${XDG_CONFIG_HOME:-${HOME}}/.cdbuff"
+DEFAULT_REGISTER_FILE="${CDBUFF_CONFIG_DIR}/registers"
+DEFAULT_HISTORY_FILE="${CDBUFF_CONFIG_DIR}/history"
 cdbuff_file="${CDBUFF_FILE:-$DEFAULT_REGISTER_FILE}"
 cdbuff_history_file="${CDBUFF_HISTORY_FILE:-$DEFAULT_HISTORY_FILE}"
 
@@ -127,6 +128,36 @@ get_last_access() {
     fi
 }
 
+get_access_count_by_path() {
+    local register_path="$1"
+    local history_file="$2"
+
+    if [[ ! -f "${history_file}" || -z "${register_path}" ]]; then
+        echo "0"
+        return
+    fi
+
+    grep -c "^[^@]*@${register_path}@" "${history_file}" || true
+}
+
+get_last_access_by_path() {
+    local register_path="$1"
+    local history_file="$2"
+
+    if [[ ! -f "${history_file}" || -z "${register_path}" ]]; then
+        echo "Never"
+        return
+    fi
+
+    local last_access
+    last_access=$(grep "^[^@]*@${register_path}@" "${history_file}" | tail -1 | cut -d '@' -f 3)
+    if [[ -z "$last_access" ]]; then
+        echo "Never"
+    else
+        echo "$last_access"
+    fi
+}
+
 check_path_exists() {
     local path="$1"
     if [[ -z "$path" ]]; then
@@ -198,8 +229,6 @@ prune_dead_registers() {
         echo
     } > /dev/tty
     
-    exec >/dev/tty
-    exec 2>/dev/tty
     
     read -p "Do you want to delete these dead registers? (y/n): " choice
     
@@ -238,7 +267,7 @@ prune_dead_registers() {
         else
             # Path doesn't exist, prune it
             echo "$(emphasis "Pruned:" "red") ${register}@${path}"
-            ((pruned_count++))
+            pruned_count=$((pruned_count + 1))
         fi
     done < "$register_file"
     
@@ -269,53 +298,29 @@ list_registers(){
         fi
     }
     
-    # Temporary files for sorting
-    local tmp_active=$(mktemp)
-    local tmp_dead=$(mktemp)
-    
     echo $(bold "Numerical registers:")
     numerical_registers="$(cat ${register_file} | sed -n '/^[0-9]@/p')"
     if [[ -n "$numerical_registers" ]]; then
         while IFS= read -r register_line; do
             register=$(echo "$register_line" | cut -d '@' -f 1)
             path=$(echo "$register_line" | cut -d '@' -f 2-)
-            count=$(get_access_count "$register" "$path" "$history_file")
-            padded_last_access=$(pad_never "$(get_last_access "$register" "$path" "$history_file")")
-            
-            output_line="    $(bold "${register}"): ${path}\n"
-            output_line+="        (access count: ${count}) (last accessed: ${padded_last_access})"
-            
+            count=$(get_access_count_by_path "$path" "$history_file")
+            padded_last_access=$(pad_never "$(get_last_access_by_path "$path" "$history_file")")
+
             if ! check_path_exists "$path"; then
-                output_line+=" $(emphasis "DEAD PATH" "red")"
-                echo "${count}|${output_line}" >> "$tmp_dead"
+                status=$(emphasis "DEAD PATH" "red")
             else
-                output_line+=" $(emphasis "ACTIVE" "green")"
-                echo "${count}|${output_line}" >> "$tmp_active"
+                status=$(emphasis "ACTIVE" "green")
             fi
-        done <<< "$numerical_registers"
-        
-        # Sort active entries by count (descending) and display
-        if [[ -s "$tmp_active" ]]; then
-            sort -rn "$tmp_active" | cut -d '|' -f 2- | while IFS= read -r line; do
-                printf "%b\n" "$line"
-            done
-        fi
-        
-        # Display dead entries (also sorted by count)
-        if [[ -s "$tmp_dead" ]]; then
-            sort -rn "$tmp_dead" | cut -d '|' -f 2- | while IFS= read -r line; do
-                printf "%b\n" "$line"
-            done
-        fi
+            printf "    %s: %s\n        (access count: %s) (last accessed: %s) %s\n" \
+                "$(bold "${register}")" "${path}" "${count}" "${padded_last_access}" "${status}"
+        done <<< "$(sort -n <<< "$numerical_registers")"
     fi
-    
-    # Clean temp files
-    rm -f "$tmp_active" "$tmp_dead"
-    tmp_active=$(mktemp)
-    tmp_dead=$(mktemp)
-    
+
     echo
     echo $(bold "Named registers:")
+    local tmp_active=$(mktemp)
+    local tmp_dead=$(mktemp)
     literal_registers="$(cat "${register_file}" | sed -n '/^[0-9]@/!p')"
     if [[ -n "$literal_registers" ]]; then
         while IFS= read -r register_line; do
@@ -693,6 +698,9 @@ parse_params() {
     -P | --prune-dead) prune_dead=1;;
     -t | --stats)
       stats=1
+      if [[ $# -lt 2 || -z "${2-}" || "${2-}" == -* ]]; then
+        exiterr "ERROR: -t/--stats requires a register name."
+      fi
       register=$(strip_register_path "${2-}")
       shift
       ;;
@@ -706,6 +714,7 @@ parse_params() {
 
     [[ -z "${register+x}" ]] && exiterr "ERROR: no register provided."
 
+    mkdir -p "$(dirname "${register_file}")"
     touch ${register_file}
     touch ${history_file}
 

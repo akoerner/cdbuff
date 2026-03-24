@@ -5,6 +5,69 @@
 cdbuff is intended for interactive use, enabling you to quickly switch between frequently used directories.
 
 
+# Installation
+
+Both installation methods require two files in the same directory: `cdbuff.plugin.zsh` and `cdbuff.sh`.
+
+---
+
+## Standalone (no plugin manager)
+
+Clone or copy the files to a directory of your choice, then source the plugin file from your `.zshrc`:
+
+```zsh
+git clone https://github.com/akoerner/cdbuff ~/.cdbuff-plugin
+echo 'source ~/.cdbuff-plugin/cdbuff.plugin.zsh' >> ~/.zshrc
+```
+
+---
+
+## Oh My Zsh
+
+```zsh
+git clone https://github.com/akoerner/cdbuff ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/cdbuff
+```
+
+Then add `cdbuff` to the plugins array in your `.zshrc`:
+
+```zsh
+plugins=(... cdbuff)
+```
+
+---
+
+## Zinit
+
+```zsh
+zinit light akoerner/cdbuff
+```
+
+---
+
+## Antigen
+
+```zsh
+antigen bundle you/cdbuff
+```
+
+---
+
+## Zplug
+
+```zsh
+zplug "akoerner/cdbuff"
+```
+
+---
+
+## Manual
+
+Copy `cdbuff.plugin.zsh` and `cdbuff.sh` into the same directory, then source the plugin file:
+
+```zsh
+source /path/to/cdbuff/cdbuff.plugin.zsh
+```
+
 ## Named Registers
 With `cdbuff` you can save and restore paths to registers by assigning arbitrary names to them.
 
